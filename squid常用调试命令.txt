@@ -1,0 +1,44 @@
+解压，编译，make ，make install 就不说了。
+从 make install 后开始。
+当你的 squid.conf 配置文档按照你的想法修改完以后，启动 squid 之旅就开始了。
+1，初始化你在 squid.conf 里配置的 cache 目录
+#squid/sbin/squid -z
+如果有错误提示，请检查你的 cache目录的权限。
+2，对你的squid.conf 排错，即验证 squid.conf 的 语法和配置。
+#squid/sbin/squid -k parse
+如果squid.conf 有语法或配置错误，这里会返回提示你，如果没有返回，恭喜，可以尝试启动squid。
+3，在前台启动squid，并输出启动过程。
+#squid/sbin/squid -N -d1
+如果有到 ready to server reques，恭喜，启动成功。
+然后 ctrl + c，停止squid，并以后台运行的方式启动它。
+4，启动squid在后台运行。
+#squid/sbin/squid -s
+这时候可以 ps -A 来查看系统进程，可以看到俩个 squid 进程。
+5，停止 squid
+#squid/sbin/squid -k shutdown
+这个不用解释吧。
+6，重引导修改过的 squid.conf
+#squid/sbin/squid -k reconfigure
+这个估计用的时候比较多，当你发现你的配置有不尽你意的时候，可以随时修改squid.conf，然后别忘记对你的 squid.conf排错，然后再执行此指令，即可让squid重新按照你的 squid.conf 来运行。
+7，把squid添加到系统启动项
+编辑 /etc/rc.d/rc.local
+添加如下行：  /usr/local/squid/sbin/squid -s
+当然，并不是每个人都喜欢这种启动方式，你可以用你最习惯的方式；或者把它安装为服务。
+
+再来点其他的。
+1，修改cache 缓存目录的权限。
+#chown -R squid:squid /home/cache
+我的cache缓存目录是 /home/cache,squid执行用户和用户组是 squid，squid。
+2，修改squid 日志目录的权限
+#chown -R squid:squid /usr/local/squid/var/logs
+这一步并不是适合每一个使用squid的用户.意为让squid有权限在该目录进行写操作 。
+例如生成  access.log    cache.log   store.log
+3，查看你的日志文档。
+#more /usr/local/squid/var/logs/access.log | grep TCP_MEM_HIT
+该指令可以看到在squid运行过程中，有那些文件被squid缓存到内存中，并返回给访问用户。
+#more /usr/local/squid/var/logs/access.log | grep TCP_HIT
+该指令可以看到在squid运行过程中，有那些文件被squid缓存到cache目录中，并返回给访问用户。
+#more /usr/local/squid/var/logs/access.log | grep TCP_MISS
+该指令可以看到在squid运行过程中，有那些文件没有被squid缓存，而是现重原始服务器获取并返回给访问用户。
+关于 TCP_XXXX 等参数及代表的信息，请参看《squid中文权威指南》13.2.1 章节。
+当然，本例中的蓝色文字是可以修改为其他的参数，例如你的域名  www.xxxx.com ，同样可以看到access.log里关于该域名的行。
